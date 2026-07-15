@@ -1,4 +1,5 @@
 #include "geometry_model.h"
+#include <cmath>
 
 namespace oapw::core
 {
@@ -15,4 +16,27 @@ GeometryResult GeometryModel::calculate() const
     return result;
 }
 
+Point2D GeometryModel::leftSpeaker() const
+{
+    return {
+        -parameters_.speakerDistance / 2.0,
+        0.0
+    };
+}
+
+Point2D GeometryModel::rightSpeaker() const
+{
+    return {
+         parameters_.speakerDistance / 2.0,
+         0.0
+    };
+}
+
+Point2D GeometryModel::listener() const
+{
+    return {
+        0.0,
+        parameters_.listeningDistance
+    };
+}
 }

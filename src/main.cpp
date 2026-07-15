@@ -19,11 +19,35 @@ int main()
 
     GeometryModel model(geometry);
 
-    auto result = model.calculate();
+/*    auto result = model.calculate();
 
     (void)result;
 
-    std::cout << "GeometryModel initialized successfully.\n";
+    std::cout << "GeometryModel initialized successfully.\n";*/
+
+auto left  = model.leftSpeaker();
+auto right = model.rightSpeaker();
+auto head  = model.listener();
+
+std::cout << "Left speaker : ("
+          << left.x
+          << ", "
+          << left.y
+          << ")\n";
+
+std::cout << "Right speaker: ("
+          << right.x
+          << ", "
+          << right.y
+          << ")\n";
+
+std::cout << "Listener     : ("
+          << head.x
+          << ", "
+          << head.y
+          << ")\n";
 
     return 0;
+
+
 }

@@ -33,6 +33,19 @@ struct GeometryResult
     double attenuation {};
 };
 
+/*class GeometryModel
+{
+public:
+
+    explicit GeometryModel(const GeometryParameters& parameters);
+
+    GeometryResult calculate() const;
+
+private:
+
+    GeometryParameters parameters_;
+};*/
+
 class GeometryModel
 {
 public:
@@ -40,6 +53,11 @@ public:
     explicit GeometryModel(const GeometryParameters& parameters);
 
     GeometryResult calculate() const;
+
+    Point2D leftSpeaker() const;
+    Point2D rightSpeaker() const;
+
+    Point2D listener() const;
 
 private:
 
