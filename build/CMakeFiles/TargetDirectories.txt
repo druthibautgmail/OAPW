@@ -1,0 +1,3 @@
+/home/druthibaut/OAPW/build/CMakeFiles/oapw-core.dir
+/home/druthibaut/OAPW/build/CMakeFiles/edit_cache.dir
+/home/druthibaut/OAPW/build/CMakeFiles/rebuild_cache.dir
