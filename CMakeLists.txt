@@ -14,6 +14,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_executable(oapw-core
     src/main.cpp
     src/geometry_model.cpp
+    src/delay_engine.cpp
 )
 
 target_include_directories(oapw-core

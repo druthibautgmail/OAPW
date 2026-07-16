@@ -1,7 +1,7 @@
 CMakeFiles/oapw-core.dir/src/geometry_model.cpp.o: \
  /home/druthibaut/OAPW/src/geometry_model.cpp /usr/include/stdc-predef.h \
- /home/druthibaut/OAPW/include/geometry_model.h /usr/include/c++/14/cmath \
- /usr/include/c++/14/bits/requires_hosted.h \
+ /home/druthibaut/OAPW/include/oapw/core/geometry_model.hpp \
+ /usr/include/c++/14/cmath /usr/include/c++/14/bits/requires_hosted.h \
  /usr/include/aarch64-linux-gnu/c++/14/bits/c++config.h \
  /usr/include/aarch64-linux-gnu/c++/14/bits/os_defines.h \
  /usr/include/features.h /usr/include/features-time64.h \

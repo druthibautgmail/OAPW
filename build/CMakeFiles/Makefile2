@@ -85,12 +85,12 @@ clean: CMakeFiles/oapw-core.dir/clean
 CMakeFiles/oapw-core.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/druthibaut/OAPW/build/CMakeFiles --progress-num=1,2,3 "Built target oapw-core"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/druthibaut/OAPW/build/CMakeFiles --progress-num=1,2,3,4 "Built target oapw-core"
 .PHONY : CMakeFiles/oapw-core.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/oapw-core.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/druthibaut/OAPW/build/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/druthibaut/OAPW/build/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/oapw-core.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/druthibaut/OAPW/build/CMakeFiles 0
 .PHONY : CMakeFiles/oapw-core.dir/rule
@@ -102,7 +102,7 @@ oapw-core: CMakeFiles/oapw-core.dir/rule
 # codegen rule for target.
 CMakeFiles/oapw-core.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/druthibaut/OAPW/build/CMakeFiles --progress-num=1,2,3 "Finished codegen for target oapw-core"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/druthibaut/OAPW/build/CMakeFiles --progress-num=1,2,3,4 "Finished codegen for target oapw-core"
 .PHONY : CMakeFiles/oapw-core.dir/codegen
 
 # clean rule for target.

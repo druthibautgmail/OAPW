@@ -129,6 +129,30 @@ oapw-core/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/build
 .PHONY : oapw-core/fast
 
+src/delay_engine.o: src/delay_engine.cpp.o
+.PHONY : src/delay_engine.o
+
+# target to build an object file
+src/delay_engine.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/delay_engine.cpp.o
+.PHONY : src/delay_engine.cpp.o
+
+src/delay_engine.i: src/delay_engine.cpp.i
+.PHONY : src/delay_engine.i
+
+# target to preprocess a source file
+src/delay_engine.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/delay_engine.cpp.i
+.PHONY : src/delay_engine.cpp.i
+
+src/delay_engine.s: src/delay_engine.cpp.s
+.PHONY : src/delay_engine.s
+
+# target to generate assembly for a file
+src/delay_engine.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/delay_engine.cpp.s
+.PHONY : src/delay_engine.cpp.s
+
 src/geometry_model.o: src/geometry_model.cpp.o
 .PHONY : src/geometry_model.o
 
@@ -186,6 +210,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... oapw-core"
+	@echo "... src/delay_engine.o"
+	@echo "... src/delay_engine.i"
+	@echo "... src/delay_engine.s"
 	@echo "... src/geometry_model.o"
 	@echo "... src/geometry_model.i"
 	@echo "... src/geometry_model.s"

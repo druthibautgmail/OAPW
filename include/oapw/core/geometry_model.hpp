@@ -7,6 +7,15 @@ struct Point2D
 {
     double x {};
     double y {};
+
+    double distanceTo(const Point2D& other) const;
+};
+
+struct Listener
+{
+    Point2D head;
+    Point2D leftEar;
+    Point2D rightEar;
 };
 
 struct GeometryParameters
@@ -20,35 +29,36 @@ struct GeometryParameters
 
 struct GeometryResult
 {
+    Point2D leftSpeaker;
+    Point2D rightSpeaker;
+
+    Listener listener;
+
     double dLL {};
     double dLR {};
     double dRL {};
     double dRR {};
 
-    double delaySeconds {};
+double deltaDistance {};
 
-    double delaySamples44k1 {};
-    double delaySamples48k {};
+double delaySeconds {};
 
-    double attenuation {};
+double delayMilliseconds {};
+
+double delayMicroseconds {};
+
+double delaySamples44k1 {};
+
+double delaySamples48k {};
+
+double delaySamples96k {};
+
+double attenuation {};
 };
-
-/*class GeometryModel
-{
-public:
-
-    explicit GeometryModel(const GeometryParameters& parameters);
-
-    GeometryResult calculate() const;
-
-private:
-
-    GeometryParameters parameters_;
-};*/
 
 class GeometryModel
 {
-public:
+/*public:
 
     explicit GeometryModel(const GeometryParameters& parameters);
 
@@ -58,6 +68,19 @@ public:
     Point2D rightSpeaker() const;
 
     Point2D listener() const;
+*/
+
+public:
+
+    explicit GeometryModel(const GeometryParameters& parameters);
+
+    GeometryResult calculate() const;
+
+    Point2D leftSpeaker() const;
+
+    Point2D rightSpeaker() const;
+
+    Listener listener() const;
 
 private:
 
