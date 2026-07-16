@@ -22,6 +22,11 @@ void DelayEngine::prepare(double sampleRate,
 
 void DelayEngine::reset()
 {
+    std::fill(buffer_.begin(),
+              buffer_.end(),
+              0.0f);
+
+    writeIndex_ = 0;
 }
 
 void DelayEngine::setDelay(double delaySamples)
