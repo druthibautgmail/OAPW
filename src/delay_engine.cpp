@@ -57,20 +57,23 @@ for (std::size_t i = 0; i < numSamples; ++i)
         buffer_[writeIndex_] = input[i];
 
         // Leseposition berechnen
-        std::size_t readIndex;
+        const std::size_t index0 =
+            (writeIndex_
+             + bufferSize
+             - integerDelay)
+            % bufferSize;
 
-        if (writeIndex_ >= integerDelay)
-            readIndex = writeIndex_ - integerDelay;
-        else
-            readIndex = bufferSize + writeIndex_ - integerDelay;
+        const std::size_t index1 =
+            (writeIndex_
+             + bufferSize
+             - integerDelay
+             - 1)
+            % bufferSize;
 
         // verzögertes Sample ausgeben
 //        output[i] = buffer_[readIndex];
-        const std::size_t nextIndex =
-            (readIndex + 1) % bufferSize;
-
-        const float s0 = buffer_[readIndex];
-        const float s1 = buffer_[nextIndex];
+        const float s0 = buffer_[index0];
+        const float s1 = buffer_[index1];
 
         output[i] =
             static_cast<float>(
