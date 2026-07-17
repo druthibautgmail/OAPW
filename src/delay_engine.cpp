@@ -1,10 +1,21 @@
 #include "oapw/core/delay_engine.hpp"
 #include <algorithm>
+#include <cmath>
 
 namespace oapw::core
 {
 
 DelayEngine::DelayEngine() = default;
+
+float DelayEngine::interpolateLinear(
+    float s0,
+    float s1,
+    double fraction)
+{
+    return static_cast<float>(
+        (1.0 - fraction) * s0 +
+        fraction * s1);
+}
 
 void DelayEngine::prepare(double sampleRate,
                           std::size_t maximumDelaySamples)
@@ -46,7 +57,7 @@ void DelayEngine::process(const float* input,
     const double delay = delaySamples_;
 
     const std::size_t integerDelay =
-        static_cast<std::size_t>(delay);
+        static_cast<std::size_t>(std::floor(delay));
 
     const double fraction =
         delay - static_cast<double>(integerDelay);
@@ -76,9 +87,10 @@ for (std::size_t i = 0; i < numSamples; ++i)
         const float s1 = buffer_[index1];
 
         output[i] =
-            static_cast<float>(
-                (1.0 - fraction) * s0 +
-                fraction        * s1);
+            interpolateLinear(
+                s0,
+                s1,
+                fraction);
         // Schreibindex weiterschalten
         writeIndex_++;
 

@@ -25,6 +25,11 @@ public:
 
 private:
 
+    static float interpolateLinear(
+        float s0,
+        float s1,
+        double fraction);
+
     double sampleRate_{0.0};
 
     double delaySamples_{0.0};
