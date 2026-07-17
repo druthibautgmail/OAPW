@@ -15,6 +15,7 @@ add_executable(oapw
     src/main.cpp
     src/geometry_model.cpp
     src/delay_engine.cpp
+    src/gain_matrix.cpp
 )
 
 target_include_directories(oapw
