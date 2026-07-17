@@ -4,21 +4,35 @@
 
 int main()
 {
-    oapw::core::GeometryParameters parameters{
-        1.76,   // speakerDistance
-        3.20,   // listeningDistance
-        0.18,   // earDistance
-        343.2   // speedOfSound
+    using namespace oapw;
+
+    core::GeometryParameters parameters{
+        1.76,
+        3.20,
+        0.18,
+        343.2
     };
 
-    oapw::core::GeometryModel geometry(parameters);
+    core::GeometryModel geometry(parameters);
 
-    oapw::config::RaceConfigurationBuilder builder;
+    config::RaceConfigurationBuilder builder;
 
-    auto config = builder.build(geometry);
+    auto config = builder.build(
+        geometry,
+        48000.0);
 
-    assert(config.leftDelaySamples == 0.0);
-    assert(config.rightDelaySamples == 0.0);
+    assert(config.gainMatrix.leftToLeft() == 1.0f);
+    assert(config.gainMatrix.rightToRight() == 1.0f);
+
+    assert(config.gainMatrix.leftToRight() > 0.0f);
+    assert(config.gainMatrix.leftToRight() < 1.0f);
+
+    assert(config.gainMatrix.rightToLeft() > 0.0f);
+    assert(config.gainMatrix.rightToLeft() < 1.0f);
+
+    assert(config.crossDelaySeconds == 0.0);
+
+    assert(config.recursionOrder == 16u);
 
     return 0;
 }

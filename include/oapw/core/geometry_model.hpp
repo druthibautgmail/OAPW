@@ -47,12 +47,6 @@ double delayMilliseconds {};
 
 double delayMicroseconds {};
 
-double delaySamples44k1 {};
-
-double delaySamples48k {};
-
-double delaySamples96k {};
-
 double attenuation {};
 };
 

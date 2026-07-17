@@ -51,16 +51,6 @@ GeometryResult GeometryModel::calculate() const
     result.delayMicroseconds =
         result.delaySeconds * 1.0e6;
 
-// Samples
-    result.delaySamples44k1 =
-        result.delaySeconds * 44100.0;
-
-    result.delaySamples48k =
-        result.delaySeconds * 48000.0;
-
-    result.delaySamples96k =
-        result.delaySeconds * 96000.0;
-
     return result;
 
 }
