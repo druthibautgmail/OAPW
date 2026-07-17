@@ -18,6 +18,14 @@ int main()
     {
         RaceProcessor processor;
 
+        processor.prepare(
+            48000.0,
+            16);
+
+        processor.setDelaySamples(
+            0.0,
+            0.0);
+
         float left{};
         float right{};
 
@@ -37,6 +45,14 @@ int main()
     //
     {
         RaceProcessor processor;
+
+        processor.prepare(
+            48000.0,
+            16);
+
+        processor.setDelaySamples(
+            0.0,
+            0.0);
 
         GainMatrix gains;
 

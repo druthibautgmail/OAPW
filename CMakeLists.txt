@@ -84,3 +84,7 @@ add_oapw_test(
     test_race_processor
     test/test_race_processor.cpp
 )
+add_oapw_test(
+    test_delay_engine
+    test/test_delay_engine.cpp
+)
