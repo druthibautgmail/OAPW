@@ -1,10 +1,10 @@
-oapw-core: \
+oapw: \
   /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/Scrt1.o \
   /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/crti.o \
   /usr/lib/gcc/aarch64-linux-gnu/14/crtbeginS.o \
-  CMakeFiles/oapw-core.dir/src/main.cpp.o \
-  CMakeFiles/oapw-core.dir/src/geometry_model.cpp.o \
-  CMakeFiles/oapw-core.dir/src/delay_engine.cpp.o \
+  CMakeFiles/oapw.dir/src/main.cpp.o \
+  CMakeFiles/oapw.dir/src/geometry_model.cpp.o \
+  CMakeFiles/oapw.dir/src/delay_engine.cpp.o \
   /usr/lib/gcc/aarch64-linux-gnu/14/libstdc++.so \
   /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/libm.so \
   /usr/lib/gcc/aarch64-linux-gnu/14/../../../aarch64-linux-gnu/libm.so \
@@ -39,11 +39,11 @@ oapw-core: \
 
 /usr/lib/gcc/aarch64-linux-gnu/14/crtbeginS.o:
 
-CMakeFiles/oapw-core.dir/src/main.cpp.o:
+CMakeFiles/oapw.dir/src/main.cpp.o:
 
-CMakeFiles/oapw-core.dir/src/geometry_model.cpp.o:
+CMakeFiles/oapw.dir/src/geometry_model.cpp.o:
 
-CMakeFiles/oapw-core.dir/src/delay_engine.cpp.o:
+CMakeFiles/oapw.dir/src/delay_engine.cpp.o:
 
 /usr/lib/gcc/aarch64-linux-gnu/14/libstdc++.so:
 

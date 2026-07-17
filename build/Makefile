@@ -117,24 +117,24 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named oapw-core
+# Target rules for targets named oapw
 
 # Build rule for target.
-oapw-core: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 oapw-core
-.PHONY : oapw-core
+oapw: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 oapw
+.PHONY : oapw
 
 # fast build rule for target.
-oapw-core/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/build
-.PHONY : oapw-core/fast
+oapw/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw.dir/build.make CMakeFiles/oapw.dir/build
+.PHONY : oapw/fast
 
 src/delay_engine.o: src/delay_engine.cpp.o
 .PHONY : src/delay_engine.o
 
 # target to build an object file
 src/delay_engine.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/delay_engine.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw.dir/build.make CMakeFiles/oapw.dir/src/delay_engine.cpp.o
 .PHONY : src/delay_engine.cpp.o
 
 src/delay_engine.i: src/delay_engine.cpp.i
@@ -142,7 +142,7 @@ src/delay_engine.i: src/delay_engine.cpp.i
 
 # target to preprocess a source file
 src/delay_engine.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/delay_engine.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw.dir/build.make CMakeFiles/oapw.dir/src/delay_engine.cpp.i
 .PHONY : src/delay_engine.cpp.i
 
 src/delay_engine.s: src/delay_engine.cpp.s
@@ -150,7 +150,7 @@ src/delay_engine.s: src/delay_engine.cpp.s
 
 # target to generate assembly for a file
 src/delay_engine.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/delay_engine.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw.dir/build.make CMakeFiles/oapw.dir/src/delay_engine.cpp.s
 .PHONY : src/delay_engine.cpp.s
 
 src/geometry_model.o: src/geometry_model.cpp.o
@@ -158,7 +158,7 @@ src/geometry_model.o: src/geometry_model.cpp.o
 
 # target to build an object file
 src/geometry_model.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/geometry_model.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw.dir/build.make CMakeFiles/oapw.dir/src/geometry_model.cpp.o
 .PHONY : src/geometry_model.cpp.o
 
 src/geometry_model.i: src/geometry_model.cpp.i
@@ -166,7 +166,7 @@ src/geometry_model.i: src/geometry_model.cpp.i
 
 # target to preprocess a source file
 src/geometry_model.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/geometry_model.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw.dir/build.make CMakeFiles/oapw.dir/src/geometry_model.cpp.i
 .PHONY : src/geometry_model.cpp.i
 
 src/geometry_model.s: src/geometry_model.cpp.s
@@ -174,7 +174,7 @@ src/geometry_model.s: src/geometry_model.cpp.s
 
 # target to generate assembly for a file
 src/geometry_model.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/geometry_model.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw.dir/build.make CMakeFiles/oapw.dir/src/geometry_model.cpp.s
 .PHONY : src/geometry_model.cpp.s
 
 src/main.o: src/main.cpp.o
@@ -182,7 +182,7 @@ src/main.o: src/main.cpp.o
 
 # target to build an object file
 src/main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/main.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw.dir/build.make CMakeFiles/oapw.dir/src/main.cpp.o
 .PHONY : src/main.cpp.o
 
 src/main.i: src/main.cpp.i
@@ -190,7 +190,7 @@ src/main.i: src/main.cpp.i
 
 # target to preprocess a source file
 src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw.dir/build.make CMakeFiles/oapw.dir/src/main.cpp.i
 .PHONY : src/main.cpp.i
 
 src/main.s: src/main.cpp.s
@@ -198,7 +198,7 @@ src/main.s: src/main.cpp.s
 
 # target to generate assembly for a file
 src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw-core.dir/build.make CMakeFiles/oapw-core.dir/src/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oapw.dir/build.make CMakeFiles/oapw.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
 # Help Target
@@ -209,7 +209,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... oapw-core"
+	@echo "... oapw"
 	@echo "... src/delay_engine.o"
 	@echo "... src/delay_engine.i"
 	@echo "... src/delay_engine.s"

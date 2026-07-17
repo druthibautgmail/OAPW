@@ -31,12 +31,57 @@ void DelayEngine::reset()
 
 void DelayEngine::setDelay(double delaySamples)
 {
+    delaySamples_ = std::clamp(
+        delaySamples,
+        0.0,
+        static_cast<double>(maximumDelay_));
 }
 
 void DelayEngine::process(const float* input,
                           float* output,
                           std::size_t numSamples)
 {
-}
+    const std::size_t bufferSize = buffer_.size();
 
+    const double delay = delaySamples_;
+
+    const std::size_t integerDelay =
+        static_cast<std::size_t>(delay);
+
+    const double fraction =
+        delay - static_cast<double>(integerDelay);
+    (void)fraction;
+for (std::size_t i = 0; i < numSamples; ++i)
+    {
+        // aktuelles Eingangssample speichern
+        buffer_[writeIndex_] = input[i];
+
+        // Leseposition berechnen
+        std::size_t readIndex;
+
+        if (writeIndex_ >= integerDelay)
+            readIndex = writeIndex_ - integerDelay;
+        else
+            readIndex = bufferSize + writeIndex_ - integerDelay;
+
+        // verzögertes Sample ausgeben
+//        output[i] = buffer_[readIndex];
+        const std::size_t nextIndex =
+            (readIndex + 1) % bufferSize;
+
+        const float s0 = buffer_[readIndex];
+        const float s1 = buffer_[nextIndex];
+
+        output[i] =
+            static_cast<float>(
+                (1.0 - fraction) * s0 +
+                fraction        * s1);
+        // Schreibindex weiterschalten
+        writeIndex_++;
+
+        if (writeIndex_ >= bufferSize)
+            writeIndex_ = 0;
+    }
+
+}
 }
