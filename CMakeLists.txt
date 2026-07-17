@@ -21,6 +21,8 @@ add_library(oapw_core
     src/gain_matrix.cpp
     src/crossfeed_engine.cpp
     src/race_processor.cpp
+    src/config/race_configuration_builder.cpp
+    src/acoustics/acoustic_model.cpp
 )
 
 target_include_directories(oapw_core
@@ -87,4 +89,12 @@ add_oapw_test(
 add_oapw_test(
     test_delay_engine
     test/test_delay_engine.cpp
+)
+add_oapw_test(
+    test_race_configuration_builder
+    test/test_race_configuration_builder.cpp
+)
+add_oapw_test(
+    test_acoustic_model
+    test/test_acoustic_model.cpp
 )
