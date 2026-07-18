@@ -46,6 +46,19 @@ void RaceProcessor::prepare(
 
     leftFilter_.reset();
     rightFilter_.reset();
+
+    leftFilter_.setCoefficients(
+        1.0f,
+        0.0f,
+        0.0f);
+
+    rightFilter_.setCoefficients(
+        1.0f,
+        0.0f,
+        0.0f);
+
+    feedbackLeft_ = 0.0f;
+    feedbackRight_ = 0.0f;
 }
 
 void RaceProcessor::setDelaySamples(
@@ -85,20 +98,20 @@ void RaceProcessor::process(
         &delayedRight_,
         1);
 
-const float recursiveInputLeft =
-    delayedLeft_ + feedbackGain_ * feedbackLeft_;
+    const float recursiveInputLeft =
+        delayedLeft_ + feedbackGain_ * feedbackLeft_;
 
-const float recursiveInputRight =
-    delayedRight_ + feedbackGain_ * feedbackRight_;
+    const float recursiveInputRight =
+        delayedRight_ + feedbackGain_ * feedbackRight_;
 
-filteredLeft_ =
-    leftFilter_.process(recursiveInputLeft);
+    filteredLeft_ =
+        leftFilter_.process(recursiveInputLeft);
 
-filteredRight_ =
-    rightFilter_.process(recursiveInputRight);
+    filteredRight_ =
+        rightFilter_.process(recursiveInputRight);
 
-feedbackLeft_ = filteredLeft_;
-feedbackRight_ = filteredRight_;
+    feedbackLeft_ = filteredLeft_;
+    feedbackRight_ = filteredRight_;
 
     outputLeft = filteredLeft_;
     outputRight = filteredRight_;
