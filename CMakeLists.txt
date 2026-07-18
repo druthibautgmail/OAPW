@@ -23,6 +23,7 @@ add_library(oapw_core
     src/race_processor.cpp
     src/config/race_configuration_builder.cpp
     src/acoustics/acoustic_model.cpp
+    src/recursive_filter.cpp
 )
 
 target_include_directories(oapw_core
@@ -97,4 +98,8 @@ add_oapw_test(
 add_oapw_test(
     test_acoustic_model
     test/test_acoustic_model.cpp
+)
+add_oapw_test(
+    test_recursive_filter
+    test/test_recursive_filter.cpp
 )
