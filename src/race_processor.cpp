@@ -3,6 +3,24 @@
 namespace oapw::core
 {
 
+void RaceProcessor::configure(
+    const config::RaceConfiguration& configuration)
+{
+    setGainMatrix(configuration.gainMatrix);
+
+    if (sampleRate_ <= 0.0)
+    {
+        return;
+    }
+
+    const double delaySamples =
+        configuration.crossDelaySeconds * sampleRate_;
+
+    setDelaySamples(
+        delaySamples,
+        delaySamples);
+}
+
 void RaceProcessor::setGainMatrix(
     const GainMatrix& gains)
 {
@@ -13,6 +31,8 @@ void RaceProcessor::prepare(
     double sampleRate,
     std::size_t maximumDelaySamples)
 {
+    sampleRate_ = sampleRate;
+
     leftDelay_.prepare(
         sampleRate,
         maximumDelaySamples);
@@ -33,45 +53,34 @@ void RaceProcessor::setDelaySamples(
         rightDelaySamples);
 }
 
-/*void RaceProcessor::process(
-    float inputLeft,
-    float inputRight,
-    float& outputLeft,
-    float& outputRight)
-{
-    crossfeed_.process(
-        inputLeft,
-        inputRight,
-        gainMatrix_,
-        outputLeft,
-        outputRight);
-}*/
-
 void RaceProcessor::process(
     float inputLeft,
     float inputRight,
     float& outputLeft,
     float& outputRight)
 {
-    float mixedLeft{};
-    float mixedRight{};
+    crossLeft_ = 0.0f;
+    crossRight_ = 0.0f;
 
     crossfeed_.process(
         inputLeft,
         inputRight,
         gainMatrix_,
-        mixedLeft,
-        mixedRight);
+        crossLeft_,
+        crossRight_);
 
     leftDelay_.process(
-        &mixedLeft,
-        &outputLeft,
+        &crossLeft_,
+        &delayedLeft_,
         1);
 
     rightDelay_.process(
-        &mixedRight,
-        &outputRight,
+        &crossRight_,
+        &delayedRight_,
         1);
+
+    outputLeft = delayedLeft_;
+    outputRight = delayedRight_;
 }
 
 } // namespace oapw::core
