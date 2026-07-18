@@ -85,11 +85,20 @@ void RaceProcessor::process(
         &delayedRight_,
         1);
 
-    filteredLeft_ =
-        leftFilter_.process(delayedLeft_);
+const float recursiveInputLeft =
+    delayedLeft_ + feedbackGain_ * feedbackLeft_;
 
-    filteredRight_ =
-        rightFilter_.process(delayedRight_);
+const float recursiveInputRight =
+    delayedRight_ + feedbackGain_ * feedbackRight_;
+
+filteredLeft_ =
+    leftFilter_.process(recursiveInputLeft);
+
+filteredRight_ =
+    rightFilter_.process(recursiveInputRight);
+
+feedbackLeft_ = filteredLeft_;
+feedbackRight_ = filteredRight_;
 
     outputLeft = filteredLeft_;
     outputRight = filteredRight_;
