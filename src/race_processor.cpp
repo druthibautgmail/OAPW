@@ -47,6 +47,7 @@ void RaceProcessor::prepare(
     leftFilter_.reset();
     rightFilter_.reset();
 
+    // Bypass
     leftFilter_.setCoefficients(
         1.0f,
         0.0f,
@@ -65,11 +66,8 @@ void RaceProcessor::setDelaySamples(
     double leftDelaySamples,
     double rightDelaySamples)
 {
-    leftDelay_.setDelay(
-        leftDelaySamples);
-
-    rightDelay_.setDelay(
-        rightDelaySamples);
+    leftDelay_.setDelay(leftDelaySamples);
+    rightDelay_.setDelay(rightDelaySamples);
 }
 
 void RaceProcessor::process(
@@ -78,8 +76,9 @@ void RaceProcessor::process(
     float& outputLeft,
     float& outputRight)
 {
-    crossLeft_ = 0.0f;
-    crossRight_ = 0.0f;
+    //---------------------------------------
+    // 1. Crosstalk berechnen
+    //---------------------------------------
 
     crossfeed_.process(
         inputLeft,
@@ -87,6 +86,10 @@ void RaceProcessor::process(
         gainMatrix_,
         crossLeft_,
         crossRight_);
+
+    //---------------------------------------
+    // 2. Crosstalk verzögern
+    //---------------------------------------
 
     leftDelay_.process(
         &crossLeft_,
@@ -98,11 +101,25 @@ void RaceProcessor::process(
         &delayedRight_,
         1);
 
+    //---------------------------------------
+    // 3. Vom Direktsignal subtrahieren
+    //---------------------------------------
+
+    const float raceLeft =
+        inputLeft - delayedRight_;
+
+    const float raceRight =
+        inputRight - delayedLeft_;
+
+    //---------------------------------------
+    // 4. Rekursionsfilter (derzeit Bypass)
+    //---------------------------------------
+
     const float recursiveInputLeft =
-        delayedLeft_ + feedbackGain_ * feedbackLeft_;
+        raceLeft + feedbackGain_ * feedbackLeft_;
 
     const float recursiveInputRight =
-        delayedRight_ + feedbackGain_ * feedbackRight_;
+        raceRight + feedbackGain_ * feedbackRight_;
 
     filteredLeft_ =
         leftFilter_.process(recursiveInputLeft);
@@ -110,8 +127,16 @@ void RaceProcessor::process(
     filteredRight_ =
         rightFilter_.process(recursiveInputRight);
 
+    //---------------------------------------
+    // 5. Rekursionszustand speichern
+    //---------------------------------------
+
     feedbackLeft_ = filteredLeft_;
     feedbackRight_ = filteredRight_;
+
+    //---------------------------------------
+    // 6. Ausgabe
+    //---------------------------------------
 
     outputLeft = filteredLeft_;
     outputRight = filteredRight_;

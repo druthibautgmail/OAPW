@@ -10,13 +10,14 @@ void CrossfeedEngine::process(
     float& outputLeft,
     float& outputRight) const
 {
+    // Nur den zu kompensierenden Übersprechanteil berechnen.
+    // Das Direktsignal wird später im RaceProcessor behandelt.
+
     outputLeft =
-        gains.leftToLeft() * inputLeft +
         gains.rightToLeft() * inputRight;
 
     outputRight =
-        gains.rightToRight() * inputRight +
         gains.leftToRight() * inputLeft;
 }
 
-}
+} // namespace oapw::core

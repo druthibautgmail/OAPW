@@ -73,8 +73,8 @@ int main()
             left,
             right);
 
-        assert(std::fabs(left  - 1.15f) < eps);
-        assert(std::fabs(right - 0.70f) < eps);
+	assert(std::fabs(left  - 0.80f) < eps);
+	assert(std::fabs(right - 0.35f) < eps);
     }
 
     std::cout << "RaceProcessor test passed.\n";
