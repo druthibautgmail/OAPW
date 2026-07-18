@@ -53,6 +53,19 @@ target_link_libraries(oapw
 )
 
 # ----------------------------------------------------------------------
+# Offline Demo Programs
+# ----------------------------------------------------------------------
+
+add_executable(wav_reader_demo
+    examples/wav_reader_demo.cpp
+)
+
+target_link_libraries(wav_reader_demo
+    PRIVATE
+        oapw_core
+)
+
+# ----------------------------------------------------------------------
 # Testing
 # ----------------------------------------------------------------------
 
@@ -80,26 +93,32 @@ add_oapw_test(
     test_gain_matrix
     test/test_gain_matrix.cpp
 )
+
 add_oapw_test(
     test_crossfeed_engine
     test/test_crossfeed_engine.cpp
 )
+
 add_oapw_test(
     test_race_processor
     test/test_race_processor.cpp
 )
+
 add_oapw_test(
     test_delay_engine
     test/test_delay_engine.cpp
 )
+
 add_oapw_test(
     test_race_configuration_builder
     test/test_race_configuration_builder.cpp
 )
+
 add_oapw_test(
     test_acoustic_model
     test/test_acoustic_model.cpp
 )
+
 add_oapw_test(
     test_recursive_filter
     test/test_recursive_filter.cpp
