@@ -40,6 +40,12 @@ void RaceProcessor::prepare(
     rightDelay_.prepare(
         sampleRate,
         maximumDelaySamples);
+
+    leftFilter_.prepare(sampleRate);
+    rightFilter_.prepare(sampleRate);
+
+    leftFilter_.reset();
+    rightFilter_.reset();
 }
 
 void RaceProcessor::setDelaySamples(
@@ -79,8 +85,14 @@ void RaceProcessor::process(
         &delayedRight_,
         1);
 
-    outputLeft = delayedLeft_;
-    outputRight = delayedRight_;
+    filteredLeft_ =
+        leftFilter_.process(delayedLeft_);
+
+    filteredRight_ =
+        rightFilter_.process(delayedRight_);
+
+    outputLeft = filteredLeft_;
+    outputRight = filteredRight_;
 }
 
 } // namespace oapw::core
