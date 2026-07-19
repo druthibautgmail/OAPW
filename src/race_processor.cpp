@@ -6,8 +6,14 @@ namespace oapw::core
 void RaceProcessor::configure(
     const config::RaceConfiguration& configuration)
 {
+    // Konfiguration speichern
+    configuration_ = configuration;
+    configured_ = true;
+
     setGainMatrix(configuration.gainMatrix);
 
+    // Falls prepare() noch nicht aufgerufen wurde,
+    // wird die Delay-Konfiguration später nachgeholt.
     if (sampleRate_ <= 0.0)
     {
         return;
@@ -47,7 +53,7 @@ void RaceProcessor::prepare(
     leftFilter_.reset();
     rightFilter_.reset();
 
-    // Bypass
+    // Rekursionsfilter zunächst als Bypass
     leftFilter_.setCoefficients(
         1.0f,
         0.0f,
@@ -60,6 +66,18 @@ void RaceProcessor::prepare(
 
     feedbackLeft_ = 0.0f;
     feedbackRight_ = 0.0f;
+
+    // Falls configure() bereits aufgerufen wurde,
+    // können jetzt die Delays korrekt gesetzt werden.
+    if (configured_)
+    {
+        const double delaySamples =
+            configuration_.crossDelaySeconds * sampleRate_;
+
+        setDelaySamples(
+            delaySamples,
+            delaySamples);
+    }
 }
 
 void RaceProcessor::setDelaySamples(
@@ -112,7 +130,8 @@ void RaceProcessor::process(
         inputRight - delayedLeft_;
 
     //---------------------------------------
-    // 4. Rekursionsfilter (derzeit Bypass)
+    // 4. Rekursionsfilter
+    // (derzeit als Bypass konfiguriert)
     //---------------------------------------
 
     const float recursiveInputLeft =
