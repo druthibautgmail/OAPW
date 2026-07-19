@@ -20,10 +20,13 @@ RaceConfiguration RaceConfigurationBuilder::build(
     config.gainMatrix =
         acousticModel_.calculateGainMatrix(result);
 
-    config.crossDelaySeconds = 0.0;
+//    config.crossDelaySeconds = 0.0;
+    constexpr double crossDelayMicroseconds = 68.0;
 
-    config.crossGainLinear =
-        config.gainMatrix.leftToRight();
+    config.crossDelaySeconds =
+        crossDelayMicroseconds * 1.0e-6;
+        config.crossGainLinear =
+            config.gainMatrix.leftToRight();
 
     config.recursionOrder = 16;
 

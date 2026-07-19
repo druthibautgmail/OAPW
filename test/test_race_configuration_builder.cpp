@@ -1,5 +1,5 @@
 #include <cassert>
-
+#include <cmath>
 #include "oapw/config/race_configuration_builder.hpp"
 
 int main()
@@ -30,7 +30,11 @@ int main()
     assert(config.gainMatrix.rightToLeft() > 0.0f);
     assert(config.gainMatrix.rightToLeft() < 1.0f);
 
-    assert(config.crossDelaySeconds == 0.0);
+    //assert(config.crossDelaySeconds == 0.0);
+    constexpr double expectedDelay = 68.0e-6;
+
+    assert(std::abs(
+        config.crossDelaySeconds - expectedDelay) < 1.0e-12);
 
     assert(config.recursionOrder == 16u);
 
