@@ -25,6 +25,7 @@ add_library(oapw_core
     src/acoustics/acoustic_model.cpp
     src/recursive_filter.cpp
     src/wav_reader.cpp
+    src/wav_writer.cpp
 )
 
 target_include_directories(oapw_core
@@ -61,6 +62,15 @@ add_executable(wav_reader_demo
 )
 
 target_link_libraries(wav_reader_demo
+    PRIVATE
+        oapw_core
+)
+
+add_executable(oapw_offline_demo
+    src/offline_demo.cpp
+)
+
+target_link_libraries(oapw_offline_demo
     PRIVATE
         oapw_core
 )
