@@ -3,34 +3,44 @@
 namespace oapw::config
 {
 
-//RaceConfiguration RaceConfigurationBuilder::build(
-//    const core::GeometryModel& geometry) const
-
 RaceConfiguration RaceConfigurationBuilder::build(
     const core::GeometryModel& geometry,
     double sampleRate) const
-
 {
     (void)sampleRate;
 
     RaceConfiguration config;
 
-    auto result = geometry.calculate();
+    const auto result = geometry.calculate();
 
-    config.gainMatrix =
+    constexpr float compensationFactor = 0.5f;
+
+    // Physikalische Gain-Matrix berechnen
+    auto gains =
         acousticModel_.calculateGainMatrix(result);
 
-//    config.crossDelaySeconds = 0.0;
+    // DSP-Kompensation anwenden
+    gains.setGains(
+        gains.leftToLeft(),
+        gains.rightToRight(),
+        gains.leftToRight() * compensationFactor,
+        gains.rightToLeft() * compensationFactor);
+
+    config.gainMatrix = gains;
+
     constexpr double crossDelayMicroseconds = 68.0;
 
     config.crossDelaySeconds =
         crossDelayMicroseconds * 1.0e-6;
-        config.crossGainLinear =
-            config.gainMatrix.leftToRight();
+
+    config.compensationFactor = compensationFactor;
+
+    config.crossGainLinear =
+        gains.leftToRight();
 
     config.recursionOrder = 16;
 
     return config;
 }
 
-}
+} // namespace oapw::config
