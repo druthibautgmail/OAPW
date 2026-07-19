@@ -23,6 +23,7 @@ add_library(oapw_core
     src/race_processor.cpp
     src/config/race_configuration_builder.cpp
     src/acoustics/acoustic_model.cpp
+    src/recursive_correction_engine.cpp
     src/recursive_filter.cpp
     src/wav_reader.cpp
     src/wav_writer.cpp

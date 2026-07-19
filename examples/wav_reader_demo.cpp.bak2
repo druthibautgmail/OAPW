@@ -1,0 +1,166 @@
+#include "oapw/io/wav_reader.hpp"
+
+#include <algorithm>
+#include <iomanip>
+#include <iostream>
+#include "oapw/io/wav_writer.hpp"
+
+int main(int argc, char* argv[])
+{
+    if (argc != 2)
+    {
+        std::cerr
+            << "Usage: wav_reader_demo <file.wav>\n";
+        return 1;
+    }
+
+    oapw::io::WavReader reader;
+
+    if (!reader.open(argv[1]))
+    {
+        std::cerr
+            << "Unable to read WAV file.\n";
+        return 1;
+    }
+
+    std::cout
+        << "Sample rate : "
+        << reader.sampleRate()
+        << " Hz\n";
+
+    std::cout
+        << "Channels    : "
+        << reader.channelCount()
+        << '\n';
+
+    std::cout
+        << "Bits/sample : "
+        << reader.bitsPerSample()
+        << '\n';
+
+    std::cout
+        << "Frames      : "
+        << reader.sampleCount()
+        << "\n\n";
+
+    const auto& samples = reader.samples();
+
+    auto printSample =
+        [&](std::size_t index)
+        {
+            if (index >= samples.size())
+            {
+                return;
+            }
+
+            std::cout
+                << std::setw(10) << index
+                << " : "
+                << std::setw(12) << samples[index].left
+                << "   "
+                << std::setw(12) << samples[index].right
+                << '\n';
+        };
+
+    //------------------------------------------------------------------
+    // Beginning
+    //------------------------------------------------------------------
+
+    std::cout << "Beginning:\n";
+
+    for (std::size_t i = 0;
+         i < std::min<std::size_t>(10, samples.size());
+         ++i)
+    {
+        printSample(i);
+    }
+
+    //------------------------------------------------------------------
+    // Middle
+    //------------------------------------------------------------------
+
+    if (samples.size() > 20)
+    {
+        std::cout << "\nMiddle:\n";
+
+        const std::size_t middle = samples.size() / 2;
+
+        for (std::size_t i = middle;
+             i < std::min(middle + 10, samples.size());
+             ++i)
+        {
+            printSample(i);
+        }
+    }
+
+    //------------------------------------------------------------------
+    // End
+    //------------------------------------------------------------------
+
+    if (samples.size() > 10)
+    {
+        std::cout << "\nEnd:\n";
+
+        for (std::size_t i = samples.size() - 10;
+             i < samples.size();
+             ++i)
+        {
+            printSample(i);
+        }
+    }
+
+    //------------------------------------------------------------------
+    // Signal statistics
+    //------------------------------------------------------------------
+
+    float minLeft  =  1.0f;
+    float maxLeft  = -1.0f;
+    float minRight =  1.0f;
+    float maxRight = -1.0f;
+
+    for (const auto& sample : samples)
+    {
+        minLeft  = std::min(minLeft,  sample.left);
+        maxLeft  = std::max(maxLeft,  sample.left);
+
+        minRight = std::min(minRight, sample.right);
+        maxRight = std::max(maxRight, sample.right);
+    }
+
+    std::cout << "\nSignal range:\n";
+
+    std::cout
+        << "Left : "
+        << minLeft
+        << " ... "
+        << maxLeft
+        << '\n';
+
+    std::cout
+        << "Right: "
+        << minRight
+        << " ... "
+        << maxRight
+        << '\n';
+    //------------------------------------------------------------------
+    // Write copy
+    //------------------------------------------------------------------
+
+    oapw::io::WavWriter writer;
+
+    if (!writer.write(
+            "copy.wav",
+            samples,
+            reader.sampleRate()))
+    {
+        std::cerr
+            << "\nUnable to write copy.wav\n";
+
+        return 1;
+    }
+
+    std::cout
+        << "\nSuccessfully wrote copy.wav\n";
+
+    return 0;
+}
