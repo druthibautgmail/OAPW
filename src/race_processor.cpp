@@ -13,6 +13,9 @@ void RaceProcessor::configure(
 
     setGainMatrix(configuration.gainMatrix);
 
+    // Filterkoeffizienten aus neuer Konfiguration anwenden
+    updateFilterCoefficients();
+
     // Falls prepare() noch nicht aufgerufen wurde,
     // wird die Delay-Konfiguration später nachgeholt.
     if (sampleRate_ <= 0.0)
@@ -32,6 +35,16 @@ void RaceProcessor::setGainMatrix(
     const GainMatrix& gains)
 {
     gainMatrix_ = gains;
+}
+
+void RaceProcessor::updateFilterCoefficients()
+{
+    float alpha = configuration_.headShadowAlpha;
+    float g     = configuration_.attenuationFactor;
+
+    // Entspricht einem One-Pole-Tiefpass: y[n] = g*alpha*x[n] + (1-alpha)*y[n-1]
+    leftFilter_.setCoefficients(g * alpha, 0.0f, -(1.0f - alpha));
+    rightFilter_.setCoefficients(g * alpha, 0.0f, -(1.0f - alpha));
 }
 
 void RaceProcessor::prepare(
@@ -56,15 +69,8 @@ void RaceProcessor::prepare(
     leftFilter_.reset();
     rightFilter_.reset();
 
-    // Initiale Filterkoeffizienten für den Kopfschatten-Tiefpass (Standard-Setup)
-    // alpha steuert die Grenzfrequenz (ca. 1-2 kHz), g die Gesamtdämpfung.
-    // Kann später über die Konfiguration dynamisiert werden.
-    float alpha = 0.3f;
-    float g = 0.75f;
-    
-    // Entspricht einem One-Pole-Tiefpass: y[n] = g*alpha*x[n] + (1-alpha)*y[n-1]
-    leftFilter_.setCoefficients(g * alpha, 0.0f, -(1.0f - alpha));
-    rightFilter_.setCoefficients(g * alpha, 0.0f, -(1.0f - alpha));
+    // Dynamische Filterkoeffizienten aus der Konfiguration zuweisen
+    updateFilterCoefficients();
 
     // Historie des Rekursionszustands auf Null setzen
     lastOutputLeft_ = 0.0f;
@@ -102,13 +108,10 @@ void RaceProcessor::process(
     float delayedCrosstalkRight = 0.0f;
 
     // 1. Die vergangenheitsbasierten Signale aus den Delays holen.
-    // Da das Delay physikalisch immer > 1 Sample ist, schreiben wir den Ausgang
-    // des letzten Zeitschritts hinein und erhalten synchron das verzögerte Signal für diesen Schritt.
     leftDelay_.process(&lastOutputLeft_, &delayedCrosstalkLeft, 1);
     rightDelay_.process(&lastOutputRight_, &delayedCrosstalkRight, 1);
 
     // 2. Frequenzabhängige Kopfschattendämpfung per Tiefpass auf den Crosstalk anwenden.
-    // Die Dämpfungsfaktoren g stecken bereits in den Filterkoeffizienten aus prepare().
     float filteredCrosstalkRight = leftFilter_.process(delayedCrosstalkRight);
     float filteredCrosstalkLeft  = rightFilter_.process(delayedCrosstalkLeft);
 

@@ -12,6 +12,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ----------------------------------------------------------------------
+# Dependencies
+# ----------------------------------------------------------------------
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JACK REQUIRED jack)
+
+# ----------------------------------------------------------------------
 # Core Library
 # ----------------------------------------------------------------------
 
@@ -52,6 +59,25 @@ add_executable(oapw
 target_link_libraries(oapw
     PRIVATE
         oapw_core
+)
+
+# ----------------------------------------------------------------------
+# PipeWire / JACK Node
+# ----------------------------------------------------------------------
+
+add_executable(oapw_pipewire_node
+    src/pipewire_node.cpp
+)
+
+target_include_directories(oapw_pipewire_node
+    PRIVATE
+        ${JACK_INCLUDE_DIRS}
+)
+
+target_link_libraries(oapw_pipewire_node
+    PRIVATE
+        oapw_core
+        ${JACK_LIBRARIES}
 )
 
 # ----------------------------------------------------------------------
