@@ -1,0 +1,132 @@
+#include "RACEDspEngine.h"
+#include <iostream>
+#include <algorithm>
+
+IIRFilter::IIRFilter(const std::vector<double>& a, const std::vector<double>& b) 
+    : ac(a), bc(b) {
+    order = ac.size() - 1;
+    x.resize(ac.size(), 0.0);
+    y.resize(ac.size(), 0.0);
+}
+
+double IIRFilter::process(double input) {
+    for (int n = order; n > 0; --n) {
+        x[n] = x[n - 1];
+        y[n] = y[n - 1];
+    }
+    x[0] = input;
+    
+    y[0] = ac[0] * x[0];
+    for (int n = 1; n <= order; ++n) {
+        y[0] += (ac[n] * x[n] - bc[n] * y[n]);
+    }
+    return y[0];
+}
+
+const std::vector<double> AC_LP = { 1.707930066E-11, 3.245067125E-10, 2.92056041249E-9, 1.654984233742E-8, 6.619936934968E-8, 1.9859810804904E-7, 4.6339558544777E-7, 8.6059180154585E-7, 1.29088770231878E-6, 1.5777516361674E-6, 1.5777516361674E-6, 1.29088770231878E-6, 8.6059180154585E-7, 4.6339558544777E-7, 1.9859810804904E-7, 6.619936934968E-8, 1.654984233742E-8, 2.92056041249E-9, 3.245067125E-10, 1.707930066E-11 };
+const std::vector<double> BC_LP = { 1.0, -11.23829931452124, 60.88662121602015, -211.01791497183748, 523.7659541722651, -988.1021170488126, 1467.8446929796328, -1755.5644457376006, 1714.2251020332717, -1377.7264003960127, 914.6210265583827, -501.2759048988774, 225.7748760019649, -82.8018677820916, 24.357062095258804, -5.613879220355998, 0.9772797930828155, -0.12090187565166291, 0.009478452885452278, -3.541797659591719E-4 };
+const std::vector<double> AC_HP = { 0.018501938638030006, -0.35153683412257014, 3.163831507103131, -17.928378540251078, 71.71351416100431, -215.14054248301292, 501.99459912703014, -932.2756840930559, 1398.413526139584, -1709.172087503936, 1709.172087503936, -1398.413526139584, 932.2756840930559, -501.99459912703014, 215.14054248301292, -71.71351416100431, 17.928378540251078, -3.163831507103131, 0.35153683412257014, -0.018501938638030006 };
+const std::vector<double> BC_HP = { 1.0, -11.23829931456545, 60.8866212164491, -211.01791497385992, 523.7659541784101, -988.102117062272, 1467.8446930021598, -1755.5644457674098, 1714.2251020651054, -1377.7264004237784, 914.6210265782755, -501.27590491059107, 225.77487600760983, -82.80186778429722, 24.35706209594665, -5.613879220523086, 0.9772797931132484, -0.1209018756555653, 0.009478452885765523, -3.54179765970956E-4 };
+
+RACEDspEngine::RACEDspEngine(int initialDn, float initialAttenuation, float initialCenterP, bool initialFreqLimit) 
+    : lpfL(AC_LP, BC_LP), lpfR(AC_LP, BC_LP),
+      hpfL(AC_HP, BC_HP), hpfR(AC_HP, BC_HP) {
+    
+    volume = 1.0f; 
+    raceEnabled = true;
+    filtersEnabled = true; // Standardmäßig aktiv
+    setParameters(initialDn, initialAttenuation, initialCenterP, initialFreqLimit);
+}
+
+RACEDspEngine::~RACEDspEngine() {}
+
+void RACEDspEngine::setParameters(int newDn, float newAttenuation, float newCenterP, bool newFreqLimit) {
+    std::lock_guard<std::mutex> lock(dspMutex); 
+    dn = (newDn > 0) ? newDn : 1;
+    attenuation = newAttenuation;
+    centerP = newCenterP;
+    freqLimitRACE = newFreqLimit;
+
+    delayBufferL.resize(dn, 0.0f);
+    delayBufferR.resize(dn, 0.0f);
+    writeIndex = 0;
+}
+
+void RACEDspEngine::setVolume(float newVolume) {
+    std::lock_guard<std::mutex> lock(dspMutex);
+    volume = newVolume;
+}
+
+void RACEDspEngine::setRaceEnabled(bool enabled) {
+    std::lock_guard<std::mutex> lock(dspMutex);
+    raceEnabled = enabled;
+}
+
+void RACEDspEngine::setFiltersEnabled(bool enabled) {
+    std::lock_guard<std::mutex> lock(dspMutex);
+    filtersEnabled = enabled;
+}
+
+// Implementierung der Getter
+int RACEDspEngine::getDn() { std::lock_guard<std::mutex> lock(dspMutex); return dn; }
+float RACEDspEngine::getAttenuation() { std::lock_guard<std::mutex> lock(dspMutex); return attenuation; }
+float RACEDspEngine::getCenterP() { std::lock_guard<std::mutex> lock(dspMutex); return centerP; }
+bool RACEDspEngine::getFreqLimit() { std::lock_guard<std::mutex> lock(dspMutex); return freqLimitRACE; }
+float RACEDspEngine::getVolume() { std::lock_guard<std::mutex> lock(dspMutex); return volume; }
+bool RACEDspEngine::getRaceEnabled() { std::lock_guard<std::mutex> lock(dspMutex); return raceEnabled; }
+bool RACEDspEngine::getFiltersEnabled() { std::lock_guard<std::mutex> lock(dspMutex); return filtersEnabled; }
+
+void RACEDspEngine::processSamples(std::vector<float>& interleavedSamples) {
+    std::lock_guard<std::mutex> lock(dspMutex); 
+
+    // KORREKTUR: Absicherung "i + 1 < size", damit wir bei ungeraden Sample-Mengen nicht abstürzen
+    for (size_t i = 0; i + 1 < interleavedSamples.size(); i += 2) {
+        float currentL = interleavedSamples[i];
+        float currentR = interleavedSamples[i + 1];
+
+        if (!raceEnabled) {
+            interleavedSamples[i] = currentL * volume;
+            interleavedSamples[i + 1] = currentR * volume;
+            continue;
+        }
+
+        float lpL, lpR, hpL = 0.0f, hpR = 0.0f;
+
+        // Berücksichtigt nun sowohl den Frequenz-Limit-Modus als auch den globalen Filter-Schalter
+        if (filtersEnabled && freqLimitRACE) {
+            hpL = static_cast<float>(hpfL.process(currentL));
+            hpR = static_cast<float>(hpfR.process(currentR));
+            lpL = static_cast<float>(lpfL.process(currentL));
+            lpR = static_cast<float>(lpfR.process(currentR));
+        } else {
+            lpL = currentL;
+            lpR = currentR;
+        }
+
+        float delayedL = delayBufferL[writeIndex];
+        float delayedR = delayBufferR[writeIndex];
+
+        float crossTalkL = attenuation * (delayedR - centerP * delayedL) / (1.0f + centerP);
+        float crossTalkR = attenuation * (delayedL - centerP * delayedR) / (1.0f + centerP);
+
+        float processedLpL = lpL - crossTalkL;
+        float processedLpR = lpR - crossTalkR;
+
+        delayBufferL[writeIndex] = processedLpL;
+        delayBufferR[writeIndex] = processedLpR;
+
+        writeIndex++;
+        if (writeIndex >= dn) writeIndex = 0;
+
+        float outL = (delayedL + hpL) * volume;
+        float outR = (delayedR + hpR) * volume;
+
+        if (outL < -1.0f) outL = -1.0f;
+        if (outL > 1.0f)  outL = 1.0f;
+        if (outR < -1.0f) outR = -1.0f;
+        if (outR > 1.0f)  outR = 1.0f;
+
+        interleavedSamples[i] = outL;
+        interleavedSamples[i + 1] = outR;
+    }
+}

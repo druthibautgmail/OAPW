@@ -1,0 +1,62 @@
+#ifndef RACE_DSP_ENGINE_H
+#define RACE_DSP_ENGINE_H
+
+#include <vector>
+#include <mutex>
+
+class IIRFilter {
+private:
+    std::vector<double> ac;
+    std::vector<double> bc;
+    std::vector<double> x;
+    std::vector<double> y;
+    int order;
+
+public:
+    IIRFilter(const std::vector<double>& a, const std::vector<double>& b);
+    double process(double input);
+};
+
+class RACEDspEngine {
+private:
+    float attenuation;
+    float centerP;
+    int dn; 
+    bool freqLimitRACE;
+    float volume; 
+    bool raceEnabled;
+    bool filtersEnabled; // NEU: Globaler Schalter für Hoch-/Tiefpass-Filter
+
+    std::vector<float> delayBufferL;
+    std::vector<float> delayBufferR;
+    int writeIndex;
+
+    IIRFilter lpfL;
+    IIRFilter lpfR;
+    IIRFilter hpfL;
+    IIRFilter hpfR;
+
+    std::mutex dspMutex;
+
+public:
+    RACEDspEngine(int initialDn, float initialAttenuation, float initialCenterP, bool initialFreqLimit);
+    ~RACEDspEngine();
+
+    void setParameters(int newDn, float newAttenuation, float newCenterP, bool newFreqLimit);
+    void setVolume(float newVolume); 
+    void setRaceEnabled(bool enabled);
+    void setFiltersEnabled(bool enabled); // NEU: Setter für Filter-Toggle
+
+    // Getter-Methoden für die Web-GUI
+    int getDn();
+    float getAttenuation();
+    float getCenterP();
+    bool getFreqLimit();
+    float getVolume();
+    bool getRaceEnabled();
+    bool getFiltersEnabled(); // NEU: Getter für Filter-Toggle
+
+    void processSamples(std::vector<float>& interleavedSamples);
+};
+
+#endif // RACE_DSP_ENGINE_H

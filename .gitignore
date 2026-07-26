@@ -1,0 +1,29 @@
+# Build
+build/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+
+# Compiler
+*.o
+*.a
+*.so
+
+# Generated audio
+data/output.wav
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+*.wav
+*.mp3
