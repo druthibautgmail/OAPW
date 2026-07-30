@@ -25,11 +25,11 @@ Die Architektur wurde vollständig überarbeitet, um klangliche Transparenz und 
 
 ## Roadmap & Zukünftige Erweiterungen
 
-### 1. Multi-Room Deployment (Spa-Bereich)
-Das OAPW-System ist vollständig hardwareunabhängig. Das exakt gleiche Setup (Hintergrunddienst + Shairport Sync + Named Pipe) ist für den Einsatz auf einem Raspberry Pi 4 vorgesehen, der an einen Yamaha-Vollverstärker mit passiven Canton-Lautsprechern angeschlossen ist. Da die Audio-Engine externe USB-DACs nahtlos unterstützt, kann der Code dort identisch kompiliert und als `oapw.service` im Hintergrund betrieben werden.
+### 1. Multi-Room Deployment (RPi4 und anderes Stereo-Equipment)
+Das OAPW-System ist vollständig hardwareunabhängig. Das exakt gleiche Setup (Hintergrunddienst + Shairport Sync + Named Pipe) ist für den Einsatz auf einem Raspberry Pi 4 mit USB Sharkoon DAC vorgesehen, der an einen Yamaha-Vollverstärker mit passiven Canton-Lautsprechern angeschlossen ist. Da die Audio-Engine externe USB-DACs nahtlos unterstützt, kann der Code dort identisch kompiliert und als `oapw.service` im Hintergrund betrieben werden.
 
 ### 2. Nativer Port für macOS (Eigenständige App)
 Da die `RACEDspEngine` in reinem, standardisiertem C++17 geschrieben und strikt von der Audio-Ausgabe und dem Webserver getrennt ist, lässt sich der Rechenkern 1:1 auf Apple-Hardware übertragen. Ein zukünftiges Ziel ist eine gekapselte, eigenständige Desktop-App unter macOS Tahoe 26.2. Diese wird den Webserver durch eine native Benutzeroberfläche ersetzen und systemweite Audio-Streams über Apples CoreAudio-APIs direkt verarbeiten.
 
-### 3. Erweiterte Zuspielung
+### 3. Erweiterte Zuspielung, z.B. PlayList Funktion
 * Aufbau einer webbasierten Playlist-Funktion mit myMPD und FIFO-Pipe direkt in `/tmp/oapw_stream`.
