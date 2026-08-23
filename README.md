@@ -15,7 +15,7 @@ graph TD
     L -.->|Crosstalk| OR[Rechtes Ohr]
     R[Lautsprecher R] -->|Direkt| OR
     R -.->|Crosstalk| OL
-
+```
 ## 2. Parametrische Raumkorrektur (PEQ)
 Um die Ambiophonie-Bühne von physischen Raumresonanzen (Raummoden) zu befreien, durchläuft das Signal anschließend kaskadierte Biquad-IIR-Filter. Jeder EQ-Knotenpunkt steuert die Amplitude und die Filtergüte (Q), welche die Bandbreite exakt um die Mittenfrequenz (f0) definiert.
 
