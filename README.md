@@ -9,13 +9,12 @@ Die ideale Laufzeitdifferenz (Δt) berechnet sich aus dem Abstand zum ipsilatera
 Δt = (d_contra - d_ipsi) / c
 
 **Vektor-Modell des Signalflusses:**
-   [ Lautsprecher L ]        [ Lautsprecher R ]
-           |  \                    /  |
-  Direkt   |    \ Crosstalk      /    | Direkt
-           |      \            /      |
-           |        \        /        |
-           v          X            v
-        [Linkes Ohr]          [Rechtes Ohr]
+```mermaid
+graph TD
+    L[Lautsprecher L] -->|Direkt| OL[Linkes Ohr]
+    L -.->|Crosstalk| OR[Rechtes Ohr]
+    R[Lautsprecher R] -->|Direkt| OR
+    R -.->|Crosstalk| OL
 
 ## 2. Parametrische Raumkorrektur (PEQ)
 Um die Ambiophonie-Bühne von physischen Raumresonanzen (Raummoden) zu befreien, durchläuft das Signal anschließend kaskadierte Biquad-IIR-Filter. Jeder EQ-Knotenpunkt steuert die Amplitude und die Filtergüte (Q), welche die Bandbreite exakt um die Mittenfrequenz (f0) definiert.
