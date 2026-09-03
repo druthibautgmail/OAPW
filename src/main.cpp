@@ -362,7 +362,7 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
     for (size_t i = samplesRead; i < samplesRequested; ++i) pOutputF32[i] = 0.0f;
 }
 
-void audioProcessingLoop(RACEDspEngine* dspEngine, std::string mode, std::string filePath, ThreadSafeAudioBuffer* sharedBuffer, std::atomic<bool>& isRunning) {
+void audioProcessingLoop(RACEDspEngine* dspEngine, std::string mode, std::string filePath, ThreadSafeAudioBuffer* sharedBuffer, std::atomic<bool>& isRunning, std::string recordPath) {
     const size_t maxBufferSize = 44100 * 2 * 2; 
 
     if (mode == "stream") {
@@ -373,6 +373,22 @@ void audioProcessingLoop(RACEDspEngine* dspEngine, std::string mode, std::string
         int fd = -1; 
         std::vector<int16_t> intBuf(1024 * 2);
         std::vector<float> floatBuf(1024 * 2);
+
+        // WAV-Writer initialisieren
+        drwav wavWriter;
+        bool isRecording = false;
+        if (!recordPath.empty()) {
+            drwav_data_format format;
+            format.container = drwav_container_riff;
+            format.format = DR_WAVE_FORMAT_IEEE_FLOAT;
+            format.channels = 2;
+            format.sampleRate = 44100;
+            format.bitsPerSample = 32;
+            if (drwav_init_file_write(&wavWriter, recordPath.c_str(), &format, NULL)) {
+                isRecording = true;
+                std::cout << "\n[Aufnahme] Starte Raw-Recording nach: " << recordPath << std::endl;
+            }
+        }
 
         while (isRunning) {
             if (fd < 0) {
@@ -388,6 +404,12 @@ void audioProcessingLoop(RACEDspEngine* dspEngine, std::string mode, std::string
                 size_t validSamples = (samplesRead / 2) * 2; 
                 if (validSamples > 0) {
                     for (size_t i = 0; i < validSamples; ++i) floatBuf[i] = intBuf[i] / 32768.0f; 
+                    
+                    // Vor der DSP-Verarbeitung in die WAV-Datei schreiben
+                    if (isRecording) {
+                        drwav_write_pcm_frames(&wavWriter, validSamples / 2, floatBuf.data());
+                    }
+
                     std::vector<float> chunk(floatBuf.begin(), floatBuf.begin() + validSamples);
                     dspEngine->processSamples(chunk);
                     sharedBuffer->push(chunk);
@@ -400,6 +422,8 @@ void audioProcessingLoop(RACEDspEngine* dspEngine, std::string mode, std::string
             }
         }
         if (fd >= 0) close(fd);
+        if (isRecording) drwav_uninit(&wavWriter); // Datei sauber abschließen
+        
     } else if (mode == "file") {
         unsigned int channels, sampleRate;
         drwav_uint64 totalPCMFrameCount;
@@ -514,7 +538,18 @@ void webServerLoop(RACEDspEngine* dspEngine, std::atomic<bool>& isRunning) {
 int main(int argc, char** argv) {
     std::string mode = "stream";
     std::string filePath = "";
-    if (argc == 2) { mode = "file"; filePath = argv[1]; }
+    std::string recordPath = "";
+
+    // Argumente parsen
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--record" && i + 1 < argc) {
+            recordPath = argv[++i];
+        } else {
+            mode = "file";
+            filePath = arg;
+        }
+    }
 
     std::atomic<bool> isRunning(true);
     
@@ -539,7 +574,8 @@ int main(int argc, char** argv) {
     }
     ma_device_start(&device);
 
-    std::thread audioThread(audioProcessingLoop, &dspEngine, mode, filePath, &sharedBuffer, std::ref(isRunning));
+    // Aktualisierter Thread-Aufruf
+    std::thread audioThread(audioProcessingLoop, &dspEngine, mode, filePath, &sharedBuffer, std::ref(isRunning), recordPath);
     
     std::thread webThread(webServerLoop, &dspEngine, std::ref(isRunning));
     webThread.detach();
