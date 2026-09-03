@@ -4,6 +4,7 @@
 #include <vector>
 #include <mutex>
 #include <array>
+#include <complex> // NEU: Für die FFT-Berechnung
 
 // NEU: Die Biquad-Filter Klasse für den Equalizer
 class BiquadFilter {
@@ -50,6 +51,10 @@ private:
     bool filtersEnabled;
     bool eqEnabled; // NEU: Globaler EQ Schalter
 
+    // NEU: Variablen für den Real-Time Analyzer
+    std::vector<float> spectrumBuffer;
+    int spectrumIndex;
+
     std::vector<float> delayBufferL;
     std::vector<float> delayBufferR;
     int writeIndex;
@@ -91,6 +96,9 @@ public:
     float getEqFreq(int bandIndex);
     float getEqQ(int bandIndex);
     float getEqGain(int bandIndex);
+
+    // NEU: Holt die aktuellen 64 EQ-Balken für das Web-GUI
+    std::vector<float> getSpectrumBands();
 
     void processSamples(std::vector<float>& interleavedSamples);
 };

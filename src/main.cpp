@@ -41,6 +41,7 @@ const char* HTML_CONTENT = R"HTML(
         button.off { background: #333; color: #888; }
         h3 { margin-top: 0; margin-bottom: 1rem; font-weight: 500; color: #007aff; }
         h4 { margin-top: 0; margin-bottom: 1rem; color: #fff; font-size: 1rem; }
+        canvas { width: 100%; height: 180px; background: #000; border-radius: 8px; margin-bottom: 1rem; display: block; border: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -49,6 +50,12 @@ const char* HTML_CONTENT = R"HTML(
     <button id="btnRace" onclick="toggleRace()">RACE: AN</button>
     <button id="btnFilters" onclick="toggleFilters()">Filter: AN</button>
     <button id="btnEq" onclick="toggleEq()">EQ: AUS</button>
+
+    <!-- NEU: Real-Time Analyzer -->
+    <div class="control-group">
+        <h3>Real-Time Analyzer [Hz]</h3>
+        <canvas id="analyzer" width="600" height="180"></canvas>
+    </div>
 
     <div class="control-group calc-group">
         <h3>Geometrie-Rechner</h3>
@@ -178,6 +185,79 @@ const char* HTML_CONTENT = R"HTML(
             updateParam('att', attRounded);
         }
 
+        // NEU: Analyzer Logic mit X-Achsen Beschriftung
+        const canvas = document.getElementById('analyzer');
+        const ctx = canvas.getContext('2d');
+        
+        function drawSpectrum() {
+            fetch('/api/spectrum')
+                .then(r => r.json())
+                .then(data => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Wir reservieren die unteren 20 Pixel für den Text
+                    let labelHeight = 20;
+                    let graphHeight = canvas.height - labelHeight;
+                    let barWidth = (canvas.width / data.length) - 1.5;
+                    let x = 0;
+                    
+                    // Farbverlauf für die Balken (Blau zu Rot)
+                    let gradient = ctx.createLinearGradient(0, graphHeight, 0, 0);
+                    gradient.addColorStop(0, '#007aff');
+                    gradient.addColorStop(0.5, '#0a84ff');
+                    gradient.addColorStop(1, '#ff3b30');
+                    
+                    // 1. Die Audio-Balken zeichnen
+                    for(let i = 0; i < data.length; i++) {
+                        let barHeight = data[i] * graphHeight;
+                        ctx.fillStyle = gradient;
+                        ctx.fillRect(x, graphHeight - barHeight, barWidth, barHeight);
+                        x += barWidth + 1.5;
+                    }
+                    
+                    // 2. Beschriftung der X-Achse (Logarithmische Verteilung)
+                    const minLog = Math.log10(20);
+                    const maxLog = Math.log10(22050);
+                    const logRange = maxLog - minLog;
+                    
+                    // Frequenzen, die wir anzeigen möchten
+                    const labels = [20, 50, 100, 500, 1000, 5000, 10000, 20000];
+                    const labelTexts = ['20', '50', '100', '500', '1k', '5k', '10k', '20k'];
+                    
+                    ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+                    
+                    for (let i = 0; i < labels.length; i++) {
+                        // Position auf der X-Achse berechnen
+                        let pos = (Math.log10(labels[i]) - minLog) / logRange;
+                        let labelX = pos * canvas.width;
+                        
+                        // Schwache, transparente Hilfslinie im Hintergrund
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+                        ctx.fillRect(labelX, 0, 1, graphHeight);
+                        
+                        // Textfarbe und Ausrichtung
+                        ctx.fillStyle = '#888';
+                        if (i === 0) {
+                            ctx.textAlign = 'left';
+                            labelX += 2; // Etwas vom Rand abrücken
+                        } else if (i === labels.length - 1) {
+                            ctx.textAlign = 'right';
+                            labelX -= 2; 
+                        } else {
+                            ctx.textAlign = 'center';
+                        }
+                        
+                        // Text ganz unten einfügen
+                        ctx.fillText(labelTexts[i], labelX, canvas.height - 4);
+                    }
+
+                    setTimeout(drawSpectrum, 50); // 20 Bilder pro Sekunde
+                })
+                .catch(e => {
+                    setTimeout(drawSpectrum, 1000); // Bei Fehler 1 Sekunde warten
+                });
+        }
+
         window.onload = () => {
             fetch('/api/status').then(r => r.json()).then(data => {
                 document.getElementById('vol').value = data.volume * 100;
@@ -213,6 +293,9 @@ const char* HTML_CONTENT = R"HTML(
                     document.getElementById('valEq'+b+'G').innerHTML = data.eq[b].g.toFixed(1) + ' dB';
                 }
             });
+            
+            // NEU: Analyzer starten
+            drawSpectrum();
         };
     </script>
 </body>
@@ -382,6 +465,18 @@ void webServerLoop(RACEDspEngine* dspEngine, std::atomic<bool>& isRunning) {
         res.set_content(json, "application/json");
     });
 
+    // NEU: Die Route für den Real-Time Analyzer
+    svr.Get("/api/spectrum", [dspEngine](const httplib::Request&, httplib::Response& res) {
+        std::vector<float> bands = dspEngine->getSpectrumBands();
+        std::string json = "[";
+        for (size_t i = 0; i < bands.size(); ++i) {
+            json += std::to_string(bands[i]);
+            if (i < bands.size() - 1) json += ",";
+        }
+        json += "]";
+        res.set_content(json, "application/json");
+    });
+
     svr.Get("/api/update", [dspEngine](const httplib::Request& req, httplib::Response& res) {
         if (req.has_param("vol")) dspEngine->setVolume(std::stof(req.get_param_value("vol")) / 100.0f);
         if (req.has_param("race")) dspEngine->setRaceEnabled(std::stoi(req.get_param_value("race")) != 0);
@@ -398,7 +493,6 @@ void webServerLoop(RACEDspEngine* dspEngine, std::atomic<bool>& isRunning) {
             dspEngine->setParameters(delayUs, attDb, center, dspEngine->getFreqLimit());
         }
 
-        // Dynamisches Verarbeiten der EQ Baender (eq0f, eq0q, eq0g, etc.)
         for(int b=0; b<3; b++) {
             std::string pf = "eq" + std::to_string(b) + "f";
             std::string pq = "eq" + std::to_string(b) + "q";

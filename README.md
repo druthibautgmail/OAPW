@@ -1,49 +1,88 @@
-# OAPW: Open Ambiophonics Processing Wrapper
+# OAPW (Ambiophonics Audio Engine) - Version 11
 
-OAPW ist eine hochperformante Audio-Engine zur Echtzeit-Berechnung des Recursive Ambiophonic Crosstalk Elimination (RACE) Algorithmus, ergänzt um dynamische DSP-Raumkorrektur.
+**Entwickelt von:** Dr. Ulrich Thibaut
+**Plattform:** C++17 / Optimiert für ARM (Raspberry Pi 5) & x86/ARM64
 
-## 1. Ambiophonie & Crosstalk Cancellation
-Die klassische Stereophonie leidet physikalisch bedingt unter interauralem Übersprechen (Crosstalk): Das linke Ohr registriert nicht nur das dedizierte linke Signal, sondern zeitverzögert und abgeschwächt auch den Schall des rechten Lautsprechers. Dies verschleiert die psychoakustische Ortung. OAPW eliminiert diesen Fehler, indem das Signal präzise verzögert, invertiert und beigemischt wird. Das Resultat ist eine holografische, dreidimensionale Klangbühne.
+## Über das Projekt
+OAPW ist eine hocheffiziente, block-basierte Echtzeit-Audio-Engine. Sie implementiert den "Recursive Ambiophonic Crosstalk Elimination" (RACE) Algorithmus nach Ralph Glasgal, um das akustische Übersprechen bei einer regulären Stereo-Lautsprecheraufstellung zu reduzieren und eine dreidimensionale, holografische Wiedergabe zu erzielen.
 
-Die ideale Laufzeitdifferenz (Δt) berechnet sich aus dem Abstand zum ipsilateralen (d_ipsi) und kontralateralen (d_contra) Ohr unter Einbezug der Schallgeschwindigkeit (c):
-Δt = (d_contra - d_ipsi) / c
+Für eine kurze Einführung in die Ambiophonie als eine der reinen Stereophonie in Transparenz und verbesserter räumlicher Abbildung weit überlegene audiophile Wiedergabetechnik in hochwertigen Stereo-Anlagen siehe auch die beiliegende README.txt sowie die dort zitierte Original-Literatur von Ralph Glasgal et al.
 
-**Vektor-Modell des Signalflusses:**
-```mermaid
-graph TD
-    L[Lautsprecher L] -->|Direkt| OL[Linkes Ohr]
-    L -.->|Crosstalk| OR[Rechtes Ohr]
-    R[Lautsprecher R] -->|Direkt| OR
-    R -.->|Crosstalk| OL
-```
-## 2. Parametrische Raumkorrektur (PEQ)
-Um die Ambiophonie-Bühne von physischen Raumresonanzen (Raummoden) zu befreien, durchläuft das Signal anschließend kaskadierte Biquad-IIR-Filter. Jeder EQ-Knotenpunkt steuert die Amplitude und die Filtergüte (Q), welche die Bandbreite exakt um die Mittenfrequenz (f0) definiert.
+## Aktueller Stand: Psychoakustik-Update (V11)
+Die Architektur wurde vollständig überarbeitet, um klangliche Transparenz und numerische Stabilität zu maximieren:
 
-## 3. Architektur & Betrieb (oapw.service)
-Das System läuft auf headless Linux-Systemen (wie Raspberry Pi 4 und 5) als ressourcenschonender Hintergrunddienst. Das Web-GUI ist lokal über Port 8080 erreichbar. OAPW greift exklusiv auf den ALSA-Hardware-Wandler zu.
+1. **Psychoakustisches Head-Shadowing:** Statt aggressiver Tiefpässe simuliert ein sanfter High-Shelf-Filter (-12 dB ab 2000 Hz) die natürliche Schallabsorption des menschlichen Kopfes. Dies erhält die Transienten und verhindert tonale Verfärbungen ("Knistern") bei symphonischen Pegelspitzen.
+2. **Phasenlineares Crossover:** Ein einzelner Butterworth-Hochpass (12 dB/Oktave bei 150 Hz) schützt den Bassbereich vor Auslöschungen und halbiert die Phasendrehungen im psychoakustisch kritischen Grundtonbereich.
+3. **Fraktionale Verzögerung (Sub-Sample):** Die Ringpuffer-Architektur nutzt nun eine hochpräzise 4-Punkt Hermite-Interpolation. Dies ermöglicht exakte Laufzeitanpassungen, ohne die Hochtonenergie im Übersprechsignal zu beschneiden.
 
-* **Player stoppen:** `sudo systemctl stop oapw`
-* **Player starten:** `sudo systemctl start oapw`
-* **Player neustarten:** `sudo systemctl restart oapw`
-* **Status prüfen:** `sudo systemctl status oapw`
-* **Live-Logbuch:** `journalctl -u oapw -f`
-
-**AirPlay-Integration:** 
-Der `shairport-sync` Dienst leitet den Stream unter Umgehung von ALSA direkt in die Pipe `/tmp/oapw_stream`.
-
-## 4. Roadmap
-* **Hardware-Unabhängigkeit:** Das Setup operiert identisch über aufgesteckte DAC-HATs (Raspberry Pi 5) oder externe USB-Wandler (Raspberry Pi 4).
-* **Native macOS Portierung:** Die Trennung von DSP-Kern und UI ermöglicht zukünftige Standalone-Apps. Eine native Portierung für systemweites Routing unter macOS Tahoe 26.2 befindet sich im Beta-Status.
+## Kern-Features
+* **Echtzeit-Audioausgabe:** Native Ansteuerung des DAC HAT pro über ALSA mittels `miniaudio.h` (Push-Modus über Thread-sicheren Ringpuffer).
+* **Dual-Mode Input:** 
+   * Dateimodus (`.wav` und `.mp3` via `dr_wav.h` und `dr_mp3.h`).
+   * Stream-Modus (Named Pipes via `/tmp/oapw_stream`), konfiguriert für Shairport Sync (AirPlay).
+* **Live-Steuerung:** Thread-sichere (Mutex) Anpassung aller DSP-Parameter (Volume, Delay, Attenuation, Center, RACE-Bypass) in Echtzeit.
+* **Web-GUI (Auto-Kalibrierung):** Integrierter, asynchroner Webserver (`httplib.h`) auf Port 8080 zur Headless-Steuerung aus dem Browser, inklusive Geometrie-Rechner für das akustische Setup der Stereoanlage.
 
 ---
 
-# English Summary: DSP Theory & Architecture
+## Systemvoraussetzungen & Hardware
+* **Hardware:** Raspberry Pi 5 mit aufgesetztem **DAC HAT pro** (für native, hochauflösende Audioausgabe).
+* **Betriebssystem:** Linux (z. B. Raspberry Pi OS).
+* **Compiler:** C++17-kompatibler Compiler (GCC 9+ oder Clang) sowie `cmake`.
+* **Tools:** `ffmpeg` (für externe Audio-Zuspielung per Skript).
+* **Bibliotheken:** ALSA-Entwicklungspakete (`libasound2-dev`).
 
-**Ambiophonics & RACE**
-Traditional stereophonic reproduction is fundamentally limited by interaural crosstalk—the phenomenon where the left ear hears not only the left speaker but also the delayed and attenuated sound from the right speaker. This physical limitation compromises psychoacoustic localization and narrows the soundstage. OAPW addresses this via the Recursive Ambiophonic Crosstalk Elimination (RACE) algorithm. By precisely calculating the Interaural Time Difference (ITD) based on listener geometry and applying an inverted, delayed cancellation signal, OAPW creates a three-dimensional, holographic soundstage. 
+## Installation und Kompilierung
+Das Projekt nutzt CMake für den Build-Prozess und kann nativ auf dem Raspberry Pi 5 gebaut werden.
 
-**Parametric EQ (PEQ)**
-To compensate for room modes (acoustic resonances), the DSP chain incorporates a cascading Biquad IIR filter stage. This allows precise tuning of specific frequencies by adjusting the gain and Q-factor (bandwidth), ensuring the ambiophonic field remains transparent and uncolored by the physical listening room.
+```bash
+# 1. Repository klonen
+git clone https://github.com/DEIN_USERNAME/oapw.git
+cd oapw
 
-**System Architecture**
-OAPW is designed in C++17 as a headless, cross-platform audio processing engine. On Linux distributions (e.g., Raspberry Pi), it runs as a background daemon capturing streams via a POSIX named pipe (ideal for Shairport Sync / AirPlay integration) and outputs directly to ALSA-compliant DACs. Its decoupled DSP core enables straightforward porting to other platforms, including an upcoming native release for macOS Tahoe 26.2.
+# 2. Abhängigkeiten installieren
+sudo apt-get update
+sudo apt-get install build-essential cmake libasound2-dev ffmpeg
+
+# 3. Build-Verzeichnis erstellen und kompilieren
+mkdir build
+cd build
+cmake ..
+make
+```
+Das kompilierte Binary `OAPW_Player` befindet sich anschließend im `build/`-Verzeichnis.
+
+## Nutzung & Audio-Streaming
+
+**1. Engine starten**
+Um die Audio-Engine im Stream-Modus zu starten und die Named Pipe anzulegen:
+```bash
+./build/OAPW_Player --stream
+```
+Der Webserver ist nun unter `http://<IP-des-Raspberry>:8080` erreichbar.
+
+**2. Zuspielung via `oapw-play`**
+Für die nahtlose Zuspielung lokaler Audio-Bibliotheken in die Pipe (`/tmp/oapw_stream`) liegt dem Repository das Skript `oapw-play` bei. Es durchsucht Verzeichnisse rekursiv nach Audiodateien und decodiert sie passend für die Engine.
+
+```bash
+# Skript ausführbar machen und systemweit verlinken
+chmod +x oapw_play
+sudo cp oapw_play /usr/local/bin/oapw-play
+
+# Einen ganzen Ordner in zufälliger Reihenfolge als Endlosschleife abspielen
+oapw-play --shuffle --repeat ~/Music/HighRes
+```
+
+---
+
+## Roadmap & Ports
+
+### 1. Multi-Room Deployment (RPi4 und anderes Stereo-Equipment)
+Das OAPW-System ist vollständig hardwareunabhängig. Das exakt gleiche Setup (Hintergrunddienst + Shairport Sync + Named Pipe) ist für den Einsatz auf einem Raspberry Pi 4 mit USB Sharkoon DAC vorgesehen, der an einen Yamaha-Vollverstärker mit passiven Canton-Lautsprechern angeschlossen ist. Da die Audio-Engine externe USB-DACs nahtlos unterstützt, kann der Code dort identisch kompiliert und als `oapw.service` im Hintergrund betrieben werden.
+
+### 2. Nativer Port für macOS (Abgeschlossen)
+Die Portierung der `RACEDspEngine` als native, eigenständige Desktop-App für **macOS Tahoe 26.2** ist bereits abgeschlossen. Diese Version ersetzt den integrierten Webserver durch eine native Benutzeroberfläche und klinkt sich für systemweite Audio-Streams direkt in Apples CoreAudio-APIs ein. 
+*Der macOS-Port wird in Kürze in einem separaten GitHub-Repository bereitgestellt.*
+
+### 3. Erweiterte Zuspielung
+* Aufbau einer webbasierten Playlist-Funktion mit myMPD und FIFO-Pipe direkt in `/tmp/oapw_stream`. Diese Funktionalität läuft derzeit als Prototyp und wird nach erfolgreichem Abschluss der Tests ebenfalls auf GitHub zur Verfügung gestellt.

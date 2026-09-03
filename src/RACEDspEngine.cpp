@@ -7,6 +7,37 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+// --- NEU: Eigener, extrem schneller FFT Algorithmus ---
+void computeFFT(std::vector<std::complex<float>>& data) {
+    size_t n = data.size();
+    if (n <= 1) return;
+    
+    // Bit-Reversal
+    for (size_t i = 1, j = 0; i < n; i++) {
+        size_t bit = n >> 1;
+        for (; j & bit; bit >>= 1) j ^= bit;
+        j ^= bit;
+        if (i < j) std::swap(data[i], data[j]);
+    }
+    
+    // Cooley-Tukey
+    for (size_t len = 2; len <= n; len <<= 1) {
+        float angle = -2.0f * M_PI / len;
+        std::complex<float> wlen(std::cos(angle), std::sin(angle));
+        for (size_t i = 0; i < n; i += len) {
+            std::complex<float> w(1, 0);
+            for (size_t j = 0; j < len / 2; j++) {
+                std::complex<float> u = data[i + j];
+                std::complex<float> v = data[i + j + len / 2] * w;
+                data[i + j] = u + v;
+                data[i + j + len / 2] = u - v;
+                w *= wlen;
+            }
+        }
+    }
+}
+// ------------------------------------------------------
+
 // --- NEU: BiquadFilter Implementierung ---
 BiquadFilter::BiquadFilter() : z1(0.0f), z2(0.0f), sampleRate(44100) {
     setParameters(1000.0f, 0.707f, 0.0f); 
@@ -77,6 +108,10 @@ RACEDspEngine::RACEDspEngine(float initialDelayUs, float initialAttenuationDb, f
         eqR[i].setParameters(f, 0.707f, 0.0f);
     }
 
+    // ... nach der EQ Initialisierung eingefügt:
+    spectrumBuffer.resize(1024, 0.0f);
+    spectrumIndex = 0;
+
     setParameters(initialDelayUs, initialAttenuationDb, initialCenterP, initialFreqLimit);
 }
 
@@ -134,10 +169,18 @@ void RACEDspEngine::processSamples(std::vector<float>& interleavedSamples) {
         float currentL = interleavedSamples[i];
         float currentR = interleavedSamples[i + 1];
 
-        // Bypass komplett, falls RACE aus
+        // Bypass komplett, aber Frequenzbandanzeige weiterhin eingeschaltet, falls RACE ausgeschaltet ist!
         if (!raceEnabled) {
-            interleavedSamples[i] = currentL * volume;
-            interleavedSamples[i + 1] = currentR * volume;
+            float bypassL = currentL * volume;
+            float bypassR = currentR * volume;
+            
+            interleavedSamples[i] = bypassL;
+            interleavedSamples[i + 1] = bypassR;
+            
+            // NEU: Signal auch im reinen Bypass-Modus für den Analyzer abgreifen
+            spectrumBuffer[spectrumIndex] = (bypassL + bypassR) * 0.5f;
+            spectrumIndex = (spectrumIndex + 1) % 1024;
+            
             continue;
         }
 
@@ -180,12 +223,70 @@ void RACEDspEngine::processSamples(std::vector<float>& interleavedSamples) {
         float outL = rawOutL * volume;
         float outR = rawOutR * volume;
 
+        // ... (Bisheriger Code in processSamples)
+        
         if (outL < -1.0f) outL = -1.0f;
         if (outL > 1.0f)  outL = 1.0f;
         if (outR < -1.0f) outR = -1.0f;
         if (outR > 1.0f)  outR = 1.0f;
 
+// NEU: Signal (Mono-Mix) für den Analyzer abgreifen
+        spectrumBuffer[spectrumIndex] = (outL + outR) * 0.5f;
+        spectrumIndex = (spectrumIndex + 1) % 1024;
+
         interleavedSamples[i] = outL;
         interleavedSamples[i + 1] = outR;
     }
+} // <--- HIER schließt sich processSamples() korrekt!
+
+std::vector<float> RACEDspEngine::getSpectrumBands() {
+    std::vector<float> audioData(1024, 0.0f);
+    
+    // 1. Sichere Kopie der aktuellen Audiodaten ziehen
+    {
+        std::lock_guard<std::mutex> lock(dspMutex);
+        for(int i = 0; i < 1024; i++) {
+            audioData[i] = spectrumBuffer[(spectrumIndex + i) % 1024];
+        }
+    } // Mutex hier sofort freigeben, damit das Audio nicht beim Rechnen stockt!
+
+    // 2. Hann-Fenster anwenden & in komplexe Zahlen wandeln
+    std::vector<std::complex<float>> complexData(1024);
+    for(int i = 0; i < 1024; i++) {
+        float multiplier = 0.5f * (1.0f - std::cos(2.0f * M_PI * i / 1023.0f));
+        complexData[i] = std::complex<float>(audioData[i] * multiplier, 0.0f);
+    }
+
+    // 3. FFT berechnen
+    computeFFT(complexData);
+
+    // 4. In 64 logarithmische Anzeige-Balken umrechnen (20Hz bis 20kHz)
+    std::vector<float> bands(64, 0.0f);
+    float minFreq = 20.0f;
+    float maxFreq = 22050.0f;
+    float logMin = std::log10(minFreq);
+    float logMax = std::log10(maxFreq);
+
+    for (int i = 1; i < 512; i++) {
+        float freq = (float)i * 44100.0f / 1024.0f;
+        if (freq < minFreq) continue;
+        if (freq > maxFreq) break;
+        
+        int bandIndex = (int)((std::log10(freq) - logMin) / (logMax - logMin) * 64.0f);
+        if (bandIndex >= 0 && bandIndex < 64) {
+            float mag = std::abs(complexData[i]);
+            if (mag > bands[bandIndex]) bands[bandIndex] = mag; // Peak im Band merken
+        }
+    }
+
+    // 5. In Dezibel umrechnen und für das HTML Canvas normalisieren (0.0 bis 1.0)
+    for(int i = 0; i < 64; i++) {
+        float db = 20.0f * std::log10(bands[i] + 1e-6f);
+        float normalized = (db + 70.0f) / 70.0f; // -70dB bis 0dB Skala
+        if (normalized < 0.0f) normalized = 0.0f;
+        if (normalized > 1.0f) normalized = 1.0f;
+        bands[i] = normalized;
+    }
+
+    return bands;
 }
