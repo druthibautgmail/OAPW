@@ -366,7 +366,10 @@ void audioProcessingLoop(RACEDspEngine* dspEngine, std::string mode, std::string
     const size_t maxBufferSize = 44100 * 2 * 2; 
 
     if (mode == "stream") {
-        const char* pipeName = "/tmp/oapw_stream";
+        // Nutze den übergebenen Pfad oder falle auf den Standard zurück
+        std::string actualPipe = filePath.empty() ? "/tmp/oapw_stream" : filePath;
+        const char* pipeName = actualPipe.c_str();
+        
         mkfifo(pipeName, 0666); 
         chmod(pipeName, 0666);
         
@@ -537,15 +540,24 @@ void webServerLoop(RACEDspEngine* dspEngine, std::atomic<bool>& isRunning) {
 
 int main(int argc, char** argv) {
     std::string mode = "stream";
-    std::string filePath = "";
+    std::string filePath = "/tmp/oapw_stream"; // Standard-Pipe
     std::string recordPath = "";
 
-    // Argumente parsen
+    // Parameter robust auswerten
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg == "--record" && i + 1 < argc) {
             recordPath = argv[++i];
-        } else {
+        } else if (arg == "--stream" && i + 1 < argc) {
+            mode = "stream";
+            filePath = argv[++i];
+        } else if (arg == "--stream") {
+            mode = "stream"; // Nutzt den Standardwert /tmp/oapw_stream
+        } else if (arg == "--file" && i + 1 < argc) {
+            mode = "file";
+            filePath = argv[++i];
+        } else if (arg[0] != '-') {
+            // Abwärtskompatibilität, falls nur ein Dateiname übergeben wird
             mode = "file";
             filePath = arg;
         }
