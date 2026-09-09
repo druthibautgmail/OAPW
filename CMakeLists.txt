@@ -3,7 +3,12 @@ project(OAPW CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mcpu=cortex-a76 -mtune=cortex-a76")
+# Für den RPi5 kann die nächste Zeile aktiviert werden, ansonsten einfach die  
+# in der darauffolgenden -mcpu=native ... Compile Flags verwenden, die auf allen 
+# RPi's (4 und 5) funktionieren sollten
+
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mcpu=cortex-a76 -mtune=cortex-a76")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mcpu=native -mtune=native")
 
 include_directories(include)
 file(GLOB SOURCES "src/*.cpp")
