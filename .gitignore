@@ -1,3 +1,4 @@
 build/
 raw_stream.wav
 *.bck
+._*
